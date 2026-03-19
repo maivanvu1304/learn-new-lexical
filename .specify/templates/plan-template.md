@@ -31,7 +31,18 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- **Simplicity Gate**: Plan documents how each study-facing screen keeps one
+  primary action and avoids non-essential controls.
+- **Offline-First Gate**: Core study loop behavior is defined for no-network use,
+  including local persistence and sync retry strategy.
+- **Scheduling/Scoring Test Gate**: Changes affecting review scheduling or scoring
+  include explicit test scope, failure-first test evidence, and coverage strategy.
+- **Accessibility Gate**: Acceptance criteria include keyboard navigation,
+  screen-reader support, WCAG 2.1 AA contrast, and 200% zoom usability.
+- **Portability Gate**: Data import/export format, validation rules, and
+  round-trip compatibility are specified.
+- **Dependency Gate**: Any new runtime dependency has explicit justification and
+  alternatives analysis; no unjustified dependency additions.
 
 ## Project Structure
 

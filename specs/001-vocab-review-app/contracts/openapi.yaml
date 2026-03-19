@@ -1,0 +1,539 @@
+openapi: 3.0.3
+info:
+  title: Vocabulary Learning API
+  version: 0.1.0
+  description: >
+    Contract for a local-first vocabulary learning app with future backend sync.
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /cards:
+    get:
+      summary: List vocabulary cards with optional filters
+      parameters:
+        - in: query
+          name: language
+          schema:
+            $ref: '#/components/schemas/Language'
+        - in: query
+          name: tag
+          schema:
+            type: string
+        - in: query
+          name: difficulty
+          schema:
+            $ref: '#/components/schemas/Difficulty'
+        - in: query
+          name: dueOnly
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Card list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VocabularyCard'
+    post:
+      summary: Create a vocabulary card
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCardRequest'
+      responses:
+        '201':
+          description: Card created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VocabularyCard'
+
+  /cards/{cardId}:
+    patch:
+      summary: Update a vocabulary card
+      parameters:
+        - in: path
+          name: cardId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCardRequest'
+      responses:
+        '200':
+          description: Card updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VocabularyCard'
+    delete:
+      summary: Delete a vocabulary card
+      parameters:
+        - in: path
+          name: cardId
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Card deleted
+
+  /cards/{cardId}/favorite:
+    post:
+      summary: Add card to favorites
+      parameters:
+        - in: path
+          name: cardId
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Favorite added
+    delete:
+      summary: Remove card from favorites
+      parameters:
+        - in: path
+          name: cardId
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Favorite removed
+
+  /reviews/sessions:
+    post:
+      summary: Start a review session
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartSessionRequest'
+      responses:
+        '201':
+          description: Session started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudySession'
+
+  /reviews/sessions/{sessionId}/answers:
+    post:
+      summary: Submit one review result
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewAnswerRequest'
+      responses:
+        '200':
+          description: Review result accepted and schedule updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewAnswerResponse'
+
+  /dashboard/today:
+    get:
+      summary: Get today's review workload and progress summary
+      responses:
+        '200':
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardToday'
+
+  /lists/favorites:
+    get:
+      summary: List favorite cards
+      responses:
+        '200':
+          description: Favorite cards
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VocabularyCard'
+
+  /lists/mistakes:
+    get:
+      summary: List mistake-focus cards
+      responses:
+        '200':
+          description: Mistake cards
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VocabularyCard'
+
+  /import:
+    post:
+      summary: Import vocabulary package
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportRequest'
+      responses:
+        '200':
+          description: Import report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportReport'
+
+  /export:
+    get:
+      summary: Export vocabulary package
+      parameters:
+        - in: query
+          name: format
+          schema:
+            type: string
+            enum: [json, csv]
+      responses:
+        '200':
+          description: Export package
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportPackage'
+
+  /sync:
+    post:
+      summary: Push local mutations and pull server changes (future sync)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncRequest'
+      responses:
+        '200':
+          description: Sync result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+
+components:
+  schemas:
+    Language:
+      type: string
+      enum: [EN, ZH]
+    Difficulty:
+      type: string
+      enum: [easy, medium, hard]
+    StudyMode:
+      type: string
+      enum: [flip, quiz, typing]
+    ReviewRating:
+      type: string
+      enum: [again, hard, good, easy]
+
+    VocabularyCard:
+      type: object
+      required: [id, word, pronunciation, meaningVi, exampleSentence, language, difficulty, isFavorite]
+      properties:
+        id:
+          type: string
+        word:
+          type: string
+        pronunciation:
+          type: string
+        meaningVi:
+          type: string
+        exampleSentence:
+          type: string
+        language:
+          $ref: '#/components/schemas/Language'
+        tags:
+          type: array
+          items:
+            type: string
+        difficulty:
+          $ref: '#/components/schemas/Difficulty'
+        isFavorite:
+          type: boolean
+
+    CreateCardRequest:
+      type: object
+      required: [word, pronunciation, meaningVi, exampleSentence, language]
+      properties:
+        word:
+          type: string
+        pronunciation:
+          type: string
+        meaningVi:
+          type: string
+        exampleSentence:
+          type: string
+        language:
+          $ref: '#/components/schemas/Language'
+        tags:
+          type: array
+          items:
+            type: string
+        difficulty:
+          $ref: '#/components/schemas/Difficulty'
+
+    UpdateCardRequest:
+      type: object
+      properties:
+        word:
+          type: string
+        pronunciation:
+          type: string
+        meaningVi:
+          type: string
+        exampleSentence:
+          type: string
+        language:
+          $ref: '#/components/schemas/Language'
+        tags:
+          type: array
+          items:
+            type: string
+        difficulty:
+          $ref: '#/components/schemas/Difficulty'
+
+    StartSessionRequest:
+      type: object
+      properties:
+        mode:
+          $ref: '#/components/schemas/StudyMode'
+        filters:
+          type: object
+          properties:
+            language:
+              $ref: '#/components/schemas/Language'
+            tag:
+              type: string
+            difficulty:
+              $ref: '#/components/schemas/Difficulty'
+
+    StudySession:
+      type: object
+      required: [sessionId, startedAt, workloadAtStart, cards]
+      properties:
+        sessionId:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        workloadAtStart:
+          type: integer
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/VocabularyCard'
+
+    ReviewAnswerRequest:
+      type: object
+      required: [cardId, mode, rating]
+      properties:
+        cardId:
+          type: string
+        mode:
+          $ref: '#/components/schemas/StudyMode'
+        rating:
+          $ref: '#/components/schemas/ReviewRating'
+        typedAnswer:
+          type: string
+
+    ReviewAnswerResponse:
+      type: object
+      required: [cardId, nextDueDate, level, intervalDays, sessionReviewedCount]
+      properties:
+        cardId:
+          type: string
+        nextDueDate:
+          type: string
+          format: date
+        level:
+          type: integer
+        intervalDays:
+          type: integer
+        sessionReviewedCount:
+          type: integer
+
+    DashboardToday:
+      type: object
+      required: [todayDueCount, streakDays, wordsLearned, reviewAccuracy, weakWordsCount]
+      properties:
+        todayDueCount:
+          type: integer
+        streakDays:
+          type: integer
+        wordsLearned:
+          type: integer
+        reviewAccuracy:
+          type: number
+        weakWordsCount:
+          type: integer
+
+    ImportRequest:
+      type: object
+      required: [formatVersion, payload]
+      properties:
+        formatVersion:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+
+    ImportReport:
+      type: object
+      required: [totalRows, importedRows, failedRows]
+      properties:
+        totalRows:
+          type: integer
+        importedRows:
+          type: integer
+        failedRows:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              row:
+                type: integer
+              reason:
+                type: string
+
+    ExportPackage:
+      type: object
+      required: [formatVersion, exportedAt, cards, schedules, reviewAttempts]
+      properties:
+        formatVersion:
+          type: string
+        exportedAt:
+          type: string
+          format: date-time
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/VocabularyCard'
+        schedules:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        reviewAttempts:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    SyncMutation:
+      type: object
+      required: [mutationId, entityType, entityId, operation, payload]
+      properties:
+        mutationId:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: string
+        operation:
+          type: string
+          enum: [upsert, delete]
+        baseVersion:
+          type: integer
+        payload:
+          type: object
+          additionalProperties: true
+        clientTimestamp:
+          type: string
+          format: date-time
+
+    SyncRequest:
+      type: object
+      required: [deviceId, mutations]
+      properties:
+        deviceId:
+          type: string
+        sinceCursor:
+          type: string
+        mutations:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncMutation'
+
+    SyncConflict:
+      type: object
+      properties:
+        entityType:
+          type: string
+        entityId:
+          type: string
+        reason:
+          type: string
+        serverVersion:
+          type: integer
+
+    SyncChange:
+      type: object
+      properties:
+        entityType:
+          type: string
+        entityId:
+          type: string
+        version:
+          type: integer
+        operation:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+
+    SyncResponse:
+      type: object
+      required: [nextCursor, ackedMutationIds, changes]
+      properties:
+        nextCursor:
+          type: string
+        ackedMutationIds:
+          type: array
+          items:
+            type: string
+        conflicts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncConflict'
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncChange'

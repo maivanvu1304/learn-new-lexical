@@ -18,6 +18,7 @@
   - Tested independently
   - Deployed independently
   - Demonstrated to users independently
+  - Validated for offline behavior and accessibility where applicable
 -->
 
 ### User Story 1 - [Brief Title] (Priority: P1)
@@ -94,6 +95,21 @@
 
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+
+### Constitution Alignment Requirements *(mandatory)*
+
+- **CR-001 (Simplicity)**: Define how the feature keeps the primary user flow focused
+  on one main action per screen and list any added UI controls with justification.
+- **CR-002 (Offline-First)**: Specify behavior when network is unavailable, including
+  local persistence and sync/retry expectations.
+- **CR-003 (Scheduling/Scoring Tests)**: If review scheduling or scoring logic is
+  changed, list required automated tests (unit + regression) and coverage target.
+- **CR-004 (Accessibility)**: Define keyboard/screen-reader behavior, contrast
+  expectations, and zoom/responsive acceptance criteria.
+- **CR-005 (Data Portability)**: Specify import/export impact, format changes, and
+  round-trip compatibility requirements.
+- **CR-006 (Dependencies)**: List new runtime dependencies with explicit
+  justification and alternatives considered, or state "No new runtime dependencies".
 
 ### Key Entities *(include if feature involves data)*
 
